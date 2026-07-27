@@ -1,0 +1,358 @@
+@startuml
+skinparam linetype ortho
+skinparam class {
+    BorderThickness 1.5
+    ArrowColor #424242
+    FontColor #212121
+}
+
+' ===== STAKEHOLDERS (Blue) =====
+entity landlords #E3F2FD {
+    * landlord_id : UUID <<PK>>
+    --
+    * full_name : VARCHAR(200)
+    * national_id : VARCHAR(50) <<UQ>>
+    * phone : VARCHAR(20) <<UQ>>
+    * email : VARCHAR(255)
+    * address : TEXT
+    * bank_details : TEXT
+    * is_active : BOOLEAN <<DF TRUE>>
+    * created_at : TIMESTAMPTZ
+}
+
+entity property_managers #E3F2FD {
+    * manager_id : UUID <<PK>>
+    --
+    * full_name : VARCHAR(200)
+    * national_id : VARCHAR(50) <<UQ>>
+    * phone : VARCHAR(20) <<UQ>>
+    * email : VARCHAR(255)
+    * commission_rate : DECIMAL(5,2)
+    * is_active : BOOLEAN
+    * created_at : TIMESTAMPTZ
+}
+
+entity tenants #E3F2FD {
+    * tenant_id : UUID <<PK>>
+    --
+    * full_name : VARCHAR(200)
+    * national_id : VARCHAR(50)
+    * phone : VARCHAR(20)
+    * email : VARCHAR(255)
+    * employer_name : VARCHAR(200)
+    * monthly_income : DECIMAL(18,2)
+    * emergency_contact_name : VARCHAR(200)
+    * emergency_contact_phone : VARCHAR(20)
+    * created_at : TIMESTAMPTZ
+}
+
+entity tenant_guarantors #E3F2FD {
+    * guarantor_id : UUID <<PK>>
+    --
+    * tenant_id : UUID <<FK>>
+    * full_name : VARCHAR(200)
+    * national_id : VARCHAR(50)
+    * phone : VARCHAR(20)
+    * relationship : VARCHAR(50)
+    * created_at : TIMESTAMPTZ
+}
+
+' ===== PROPERTIES (Green) =====
+entity properties #E8F5E9 {
+    * property_id : UUID <<PK>>
+    --
+    * landlord_id : UUID <<FK>>
+    * manager_id : UUID <<FK>>
+    * property_code : VARCHAR(20) <<UQ>>
+    * property_name : VARCHAR(200)
+    * property_type : ENUM('HOUSE','COTTAGE','APARTMENT','OFFICE','SHOP','INDUSTRIAL')
+    * address : TEXT
+    * city : VARCHAR(100)
+    * suburb : VARCHAR(100)
+    * council_zone : VARCHAR(50)
+    * stand_number : VARCHAR(50)
+    * deed_number : VARCHAR(100)
+    * description : TEXT
+    * amenities : TEXT
+    * status : ENUM('ACTIVE','INACTIVE')
+    * created_at : TIMESTAMPTZ
+}
+
+entity property_documents #E8F5E9 {
+    * document_id : UUID <<PK>>
+    --
+    * property_id : UUID <<FK>>
+    * document_type : ENUM('TITLE_DEED','COUNCIL_CERT','INSURANCE','PHOTO')
+    * file_path : VARCHAR(500)
+    * uploaded_at : TIMESTAMPTZ
+}
+
+entity units #E8F5E9 {
+    * unit_id : UUID <<PK>>
+    --
+    * property_id : UUID <<FK>>
+    * unit_number : VARCHAR(20)
+    * unit_type : ENUM('BEDSITTER','1_BED','2_BED','3_BED','4_BED','OFFICE','SHOP','WAREHOUSE')
+    * description : TEXT
+    * current_rent : DECIMAL(18,2)
+    * rent_currency : CHAR(3) <<DF 'USD'>>
+    * deposit_months : INT <<DF 1>>
+    * status : ENUM('VACANT','OCCUPIED','MAINTENANCE')
+    * created_at : TIMESTAMPTZ
+    --
+    <<UQ>> (property_id, unit_number)
+}
+
+' ===== LEASES (Red) =====
+entity leases #FFEBEE {
+    * lease_id : UUID <<PK>>
+    --
+    * lease_number : VARCHAR(50) <<UQ>>
+    * unit_id : UUID <<FK>>
+    * primary_tenant_id : UUID <<FK>>
+    * start_date : DATE
+    * end_date : DATE
+    * base_rent : DECIMAL(18,2)
+    * rent_currency : CHAR(3) <<DF 'USD'>>
+    * deposit_amount : DECIMAL(18,2)
+    * payment_due_day : INT <<DF 1>>
+    * late_fee_amount : DECIMAL(18,2)
+    * includes_water : BOOLEAN <<DF FALSE>>
+    * includes_zesa : BOOLEAN <<DF FALSE>>
+    * includes_rates : BOOLEAN <<DF FALSE>>
+    * rent_review_date : DATE
+    * escalation_notes : TEXT
+    * status : ENUM('DRAFT','ACTIVE','ENDED','BREACHED')
+    * notes : TEXT
+    * created_at : TIMESTAMPTZ
+}
+
+entity lease_tenants #FFEBEE {
+    * lease_tenant_id : UUID <<PK>>
+    --
+    * lease_id : UUID <<FK>>
+    * tenant_id : UUID <<FK>>
+    * is_primary : BOOLEAN <<DF FALSE>>
+    * created_at : TIMESTAMPTZ
+}
+
+entity lease_documents #FFEBEE {
+    * doc_id : UUID <<PK>>
+    --
+    * lease_id : UUID <<FK>>
+    * document_type : ENUM('AGREEMENT','INVENTORY','CONDITION_REPORT')
+    * file_path : VARCHAR(500)
+    * signed_at : TIMESTAMPTZ
+    * uploaded_at : TIMESTAMPTZ
+}
+
+entity payment_schedules #FFF8E1 {
+    * schedule_id : UUID <<PK>>
+    --
+    * lease_id : UUID <<FK>>
+    * due_date : DATE
+    * amount_due : DECIMAL(18,2)
+    * currency_code : CHAR(3)
+    * description : VARCHAR(255)
+    * status : ENUM('PENDING','PAID','OVERDUE')
+    * created_at : TIMESTAMPTZ
+}
+
+entity rent_payments #FFF8E1 {
+    * payment_id : UUID <<PK>>
+    --
+    * lease_id : UUID <<FK>>
+    * schedule_id : UUID <<FK>>
+    * payment_method : ENUM('CASH','BANK_TRANSFER','ECOCASH','ZIPIT','ONEMONEY','INNBUCKS')
+    * currency_code : CHAR(3)
+    * amount_paid : DECIMAL(18,2)
+    * reference_number : VARCHAR(100)
+    * receipt_number : VARCHAR(50) <<UQ>>
+    * period_from : DATE
+    * period_to : DATE
+    * received_by : UUID
+    * payment_date : TIMESTAMPTZ
+    * notes : TEXT
+    * created_at : TIMESTAMPTZ
+}
+
+entity deposits #FFF8E1 {
+    * deposit_id : UUID <<PK>>
+    --
+    * lease_id : UUID <<FK>>
+    * amount : DECIMAL(18,2)
+    * currency_code : CHAR(3)
+    * held_by : ENUM('LANDLORD','AGENT')
+    * status : ENUM('HELD','RETURNED','FORFEITED')
+    * deductions_amount : DECIMAL(18,2)
+    * deductions_reason : TEXT
+    * returned_amount : DECIMAL(18,2)
+    * returned_at : TIMESTAMPTZ
+    * created_at : TIMESTAMPTZ
+}
+
+' ===== MAINTENANCE (Orange) =====
+entity maintenance_categories #FFE0B2 {
+    * category_id : UUID <<PK>>
+    --
+    * category_name : VARCHAR(100)
+    * description : TEXT
+    * is_active : BOOLEAN
+    * created_at : TIMESTAMPTZ
+}
+
+entity maintenance_requests #FFE0B2 {
+    * request_id : UUID <<PK>>
+    --
+    * lease_id : UUID <<FK>>
+    * unit_id : UUID <<FK>>
+    * category_id : UUID <<FK>>
+    * title : VARCHAR(255)
+    * description : TEXT
+    * priority : ENUM('LOW','MEDIUM','HIGH','EMERGENCY')
+    * status : ENUM('OPEN','IN_PROGRESS','COMPLETED','CANCELLED')
+    * assigned_to : VARCHAR(200)
+    * reported_at : TIMESTAMPTZ
+    * completed_at : TIMESTAMPTZ
+    * cost_estimate : DECIMAL(18,2)
+    * final_cost : DECIMAL(18,2)
+    * currency_code : CHAR(3)
+    * created_at : TIMESTAMPTZ
+}
+
+entity maintenance_photos #FFE0B2 {
+    * photo_id : UUID <<PK>>
+    --
+    * request_id : UUID <<FK>>
+    * file_path : VARCHAR(500)
+    * uploaded_at : TIMESTAMPTZ
+}
+
+' ===== INSPECTIONS (Teal) =====
+entity inspections #E0F2F1 {
+    * inspection_id : UUID <<PK>>
+    --
+    * lease_id : UUID <<FK>>
+    * unit_id : UUID <<FK>>
+    * inspection_type : ENUM('MOVE_IN','MOVE_OUT','PERIODIC')
+    * scheduled_date : DATE
+    * conducted_date : TIMESTAMPTZ
+    * conducted_by : VARCHAR(200)
+    * tenant_present : BOOLEAN
+    * overall_condition : ENUM('GOOD','FAIR','POOR','DAMAGED')
+    * condition_notes : TEXT
+    * damages_noted : TEXT
+    * created_at : TIMESTAMPTZ
+}
+
+' ===== EXPENSES (Purple) =====
+entity expense_categories #F3E5F5 {
+    * category_id : UUID <<PK>>
+    --
+    * category_name : VARCHAR(100)
+    * description : TEXT
+    * is_active : BOOLEAN
+    * created_at : TIMESTAMPTZ
+}
+
+entity expenses #F3E5F5 {
+    * expense_id : UUID <<PK>>
+    --
+    * property_id : UUID <<FK>>
+    * unit_id : UUID <<FK>>
+    * category_id : UUID <<FK>>
+    * expense_type : ENUM('RATES','ZESA','WATER','INSURANCE','MAINTENANCE','SECURITY','OTHER')
+    * description : TEXT
+    * amount : DECIMAL(18,2)
+    * currency_code : CHAR(3)
+    * supplier_name : VARCHAR(200)
+    * invoice_number : VARCHAR(50)
+    * invoice_date : DATE
+    * paid_date : DATE
+    * is_recoverable_from_tenant : BOOLEAN
+    * created_at : TIMESTAMPTZ
+}
+
+' ===== COMMUNICATIONS (Indigo) =====
+entity sms_logs #E8EAF6 {
+    * sms_id : UUID <<PK>>
+    --
+    * recipient_type : ENUM('TENANT','LANDLORD','MANAGER')
+    * recipient_id : UUID
+    * phone : VARCHAR(20)
+    * message : TEXT
+    * status : ENUM('PENDING','SENT','FAILED')
+    * sent_at : TIMESTAMPTZ
+    * created_at : TIMESTAMPTZ
+}
+
+' ===== RELATIONSHIPS =====
+landlords ||--o{ properties : owns
+property_managers ||--o{ properties : manages
+
+properties ||--o{ property_documents
+properties ||--o{ units : contains
+properties ||--o{ expenses : incurs
+
+units ||--o{ leases : has
+units ||--o{ maintenance_requests : subject_of
+units ||--o{ inspections : inspected
+units ||--o{ expenses : specific_to
+
+tenants ||--o{ tenant_guarantors
+tenants ||--o{ lease_tenants
+tenants ||--o{ maintenance_requests : reports
+
+leases ||--o{ lease_tenants
+leases ||--o{ lease_documents
+leases ||--o{ payment_schedules
+leases ||--o{ rent_payments
+leases ||--o{ deposits
+leases ||--o{ maintenance_requests
+leases ||--o{ inspections
+
+maintenance_categories ||--o{ maintenance_requests
+maintenance_requests ||--o{ maintenance_photos
+
+expense_categories ||--o{ expenses
+
+note right of properties
+  **Zimbabwe Essentials Kept**
+  - council_zone, stand_number, deed_number
+  - Multi-currency: USD/ZiG rent & deposits
+  - Simple TEXT amenities vs JSONB
+end note
+
+note right of leases
+  **Simplified for Low-Tech**
+  - No complex escalation table; just review date + notes
+  - Single late_fee_amount (grace days in app logic)
+  - All tenant contact via SMS/WhatsApp
+end note
+
+note right of rent_payments
+  **Mobile Money Optimized**
+  - EcoCash, OneMoney, ZIPIT, Innbucks
+  - Receipt number for ZIMRA/paper trail
+  - No complex forex calculations in DB
+end note
+
+note right of maintenance_requests
+  **Practical Ticketing**
+  - assigned_to as free text (contractor name/phone)
+  - Photo evidence kept simple
+  - Cost tracked for landlord visibility
+end note
+
+note bottom of units
+  **Recommended Indexes (Low-Tech PG)**
+  - units(property_id, status)
+  - leases(unit_id, status)
+  - payment_schedules(lease_id, due_date, status)
+  - rent_payments(lease_id, payment_date)
+  - rent_payments(receipt_number)
+  - maintenance_requests(unit_id, status)
+  - expenses(property_id, expense_type, invoice_date)
+end note
+
+@enduml

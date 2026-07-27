@@ -3,14 +3,14 @@ version: "3.8"
 services:
   db:
     image: postgis/postgis:15-3.4
-    container_name: zim-rental-db
+    container_name: zim-rental-db-dev
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER:-zimrental}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-zimrental123}
       POSTGRES_DB: ${DB_NAME:-zimrental}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_dev:/var/lib/postgresql/data
       - ./docker/postgres/init-postgis.sql:/docker-entrypoint-initdb.d/init-postgis.sql
     ports:
       - "${DB_PORT:-5432}:5432"
@@ -20,20 +20,19 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - zim-rental-net
+      - zim-rental-dev-net
 
   api:
-    build: ./backend
-    container_name: zim-rental-api
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: zim-rental-api-dev
     restart: unless-stopped
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
-      - ./backend/app:/app/app
-      - ./backend/seeds:/app/seeds
-      - ./backend/scripts:/app/scripts
-      - uploads:/app/app/static/uploads
-      - receipts:/app/app/static/receipts
-      - reports:/app/app/static/reports
+      - ./backend:/app
+      - uploads_dev:/app/app/static/uploads
+      - receipts_dev:/app/app/static/receipts
+      - reports_dev:/app/app/static/reports
     ports:
       - "${API_PORT:-8000}:8000"
     environment:
@@ -47,25 +46,32 @@ services:
       db:
         condition: service_healthy
     networks:
-      - zim-rental-net
+      - zim-rental-dev-net
 
   frontend:
-    build: ./frontend
-    container_name: zim-rental-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: zim-rental-frontend-dev
     restart: unless-stopped
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     ports:
-      - "${FRONTEND_PORT:-80}:80"
+      - "${FRONTEND_PORT:-5173}:5173"
+    environment:
+      - VITE_API_URL=http://api:8000
     depends_on:
       - api
     networks:
-      - zim-rental-net
+      - zim-rental-dev-net
 
 volumes:
-  postgres_data:
-  uploads:
-  receipts:
-  reports:
+  postgres_data_dev:
+  uploads_dev:
+  receipts_dev:
+  reports_dev:
 
 networks:
-  zim-rental-net:
+  zim-rental-dev-net:
     driver: bridge

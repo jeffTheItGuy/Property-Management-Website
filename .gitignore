@@ -1,0 +1,104 @@
+# =============================================================================
+# PYTHON / BACKEND
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Testing & linting
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+hypothesis/
+
+# IDEs & editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+*.log
+local_settings.py
+
+# =============================================================================
+# NODE / FRONTEND
+# =============================================================================
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+.cache/
+out/
+build/
+
+# =============================================================================
+# PROJECT SPECIFIC — RUNTIME GENERATED FILES
+# =============================================================================
+# Receipts, reports, and uploads are generated at runtime; don't commit them
+backend/app/static/receipts/
+backend/app/static/reports/
+backend/app/static/uploads/
+
+# If you ever dump local DBs or GeoJSON exports in the repo root
+*.sqlite
+*.sqlite3
+*.db
+*.geojson
+*.xlsx
+*.pdf
+
+# =============================================================================
+# MISC
+# =============================================================================
+# Keep Alembic migration scripts; only ignore if you have local DB copies there
+# backend/migrations/versions/*.db
+
+# Terraform / infra (if you add later)
+*.tfstate
+*.tfstate.*
+.terraform/

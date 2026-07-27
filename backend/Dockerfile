@@ -2,17 +2,30 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system deps for WeasyPrint, psycopg2, Shapely
-RUN apt-get update && apt-get install -y \
-    libpq-dev gcc python3-dev \
-    libpango-1.0-0 libharfbuzz0b libpangoft2-1.0-0 \
-    libffi-dev libjpeg-dev libopenjp2-7-dev \
-    libgdk-pixbuf2.0-0 libxml2-dev libxslt1-dev \
+# Runtime libraries required by WeasyPrint (PDF receipts) and GeoPandas/PostGIS stack
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpango-1.0-0 \
+    libharfbuzz0b \
+    libpangoft2-1.0-0 \
+    libgdk-pixbuf2.0-0 \
+    shared-mime-info \
+    libgdal32 \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Python deps
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# Copy app code
+COPY app ./app
+COPY alembic.ini .
+COPY scripts ./scripts
+COPY seeds ./seeds
+COPY migrations ./migrations
+
+# Ensure runtime output dirs exist (volumes will mount over them in compose)
+RUN mkdir -p app/static/receipts app/static/reports app/static/uploads
+
+EXPOSE 8000
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
