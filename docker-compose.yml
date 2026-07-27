@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgis/postgis:15-3.4
+    container_name: zim-rental-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-zimrental}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-zimrental123}
+      POSTGRES_DB: ${DB_NAME:-zimrental}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-postgis.sql:/docker-entrypoint-initdb.d/init-postgis.sql
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-zimrental} -d ${DB_NAME:-zimrental}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./backend
+    container_name: zim-rental-api
+    restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/seeds:/app/seeds
+      - ./backend/scripts:/app/scripts
+      - uploads:/app/app/static/uploads
+      - receipts:/app/app/static/receipts
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM:-HS256}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-480}
+      - SMS_API_KEY=${SMS_API_KEY}
+      - SMS_SENDER_ID=${SMS_SENDER_ID}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  uploads:
+  receipts:

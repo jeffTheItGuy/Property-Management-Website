@@ -1,0 +1,1 @@
+Dear {{ tenant_name }}, your rent of {{ amount_due }} {{ currency }} for {{ month }} is now OVERDUE. Please settle immediately via EcoCash/Zipit to avoid penalties. Call {{ manager_phone }} if you have queries. -ZimRental

@@ -1,0 +1,1 @@
+Dear {{ tenant_name }}, your lease at {{ property_name }} expires on {{ end_date }}. Please confirm renewal or vacate plans by replying to this SMS or calling {{ manager_phone }}. -ZimRental

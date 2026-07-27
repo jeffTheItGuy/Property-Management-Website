@@ -1,0 +1,10 @@
+[
+  {"category_name": "Council Rates", "description": "Municipal rates and levies", "is_tax_deductible": true},
+  {"category_name": "ZESA", "description": "Electricity bills", "is_tax_deductible": true},
+  {"category_name": "Water", "description": "Municipal water charges", "is_tax_deductible": true},
+  {"category_name": "Insurance", "description": "Property and building insurance", "is_tax_deductible": true},
+  {"category_name": "Maintenance", "description": "General repairs and upkeep", "is_tax_deductible": true},
+  {"category_name": "Security", "description": "Guard services, security company", "is_tax_deductible": true},
+  {"category_name": "Gardening", "description": "Lawn and grounds maintenance", "is_tax_deductible": true},
+  {"category_name": "Other", "description": "Miscellaneous property expenses", "is_tax_deductible": false}
+]
