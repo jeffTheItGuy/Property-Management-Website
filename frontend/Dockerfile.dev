@@ -1,0 +1,10 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+# Source is mounted as a volume; bind to 0.0.0.0 so Docker can reach it
+EXPOSE 5173
+CMD ["npm", "run", "dev", "--", "--host"]
