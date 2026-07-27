@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, date
 from typing import Optional
 
-from sqlalchemy import String, Date, DateTime, Numeric, Integer, Boolean, ForeignKey, func
+from sqlalchemy import String, Text, Date, DateTime, Numeric, Integer, Boolean, ForeignKey, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 

@@ -2,12 +2,13 @@ import uuid
 from datetime import datetime
 from typing import List, Optional, Any
 
-from sqlalchemy import String, Text, Integer, ForeignKey, func
+from sqlalchemy import String, Text, Integer, ForeignKey, DateTime, Numeric, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from geoalchemy2 import Geometry
 
 from app.database import Base
+from app.models.inspections import Inspection
 
 
 class Property(Base):
@@ -28,7 +29,6 @@ class Property(Base):
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     amenities: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(20), default="ACTIVE")  # ACTIVE, INACTIVE
-    # PostGIS point for property location (WGS84)
     geom: Mapped[Optional[Any]] = mapped_column(Geometry("POINT", srid=4326), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -53,10 +53,7 @@ class PropertyDocument(Base):
 
 class Unit(Base):
     __tablename__ = "units"
-    __table_args__ = (
-        # Unique constraint handled via UK comment in schema; SQLAlchemy unique constraint:
-        # (property_id, unit_number)
-    )
+    __table_args__ = ()
 
     unit_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     property_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("properties.property_id"))

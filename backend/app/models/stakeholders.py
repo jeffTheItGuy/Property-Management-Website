@@ -57,7 +57,6 @@ class Tenant(Base):
 
     guarantors: Mapped[List["TenantGuarantor"]] = relationship(back_populates="tenant")
     lease_tenants: Mapped[List["LeaseTenant"]] = relationship(back_populates="tenant")
-    maintenance_requests: Mapped[List["MaintenanceRequest"]] = relationship(back_populates="tenant")
 
 
 class TenantGuarantor(Base):
@@ -68,7 +67,7 @@ class TenantGuarantor(Base):
     full_name: Mapped[str] = mapped_column(String(200))
     national_id: Mapped[str] = mapped_column(String(50))
     phone: Mapped[str] = mapped_column(String(20))
-    relationship: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    relationship_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     tenant: Mapped["Tenant"] = relationship(back_populates="guarantors")

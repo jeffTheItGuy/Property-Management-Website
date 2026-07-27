@@ -28,6 +28,10 @@ class LeaseDocumentBase(BaseModel):
     signed_at: Optional[datetime] = None
 
 
+class LeaseDocumentCreate(LeaseDocumentBase):
+    pass
+
+
 class LeaseDocumentResponse(LeaseDocumentBase):
     doc_id: uuid.UUID
     uploaded_at: datetime

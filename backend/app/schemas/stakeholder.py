@@ -104,7 +104,7 @@ class TenantGuarantorBase(BaseModel):
     full_name: str
     national_id: str
     phone: str
-    relationship: Optional[str] = None
+    relationship_type: Optional[str] = None
 
 
 class TenantGuarantorCreate(TenantGuarantorBase):

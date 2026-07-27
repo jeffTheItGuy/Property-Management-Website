@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import String, Text, DateTime, Numeric, ForeignKey, func
+from sqlalchemy import String, Text, DateTime, Numeric, Boolean, ForeignKey, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -32,7 +32,7 @@ class MaintenanceRequest(Base):
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     priority: Mapped[str] = mapped_column(String(20), default="MEDIUM")  # LOW, MEDIUM, HIGH, EMERGENCY
     status: Mapped[str] = mapped_column(String(20), default="OPEN")  # OPEN, IN_PROGRESS, COMPLETED, CANCELLED
-    assigned_to: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)  # Free text: contractor name/phone
+    assigned_to: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     reported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     cost_estimate: Mapped[Optional[float]] = mapped_column(Numeric(18, 2), nullable=True)

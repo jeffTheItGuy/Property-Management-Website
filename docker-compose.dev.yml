@@ -11,7 +11,7 @@ services:
       POSTGRES_DB: ${DB_NAME:-zimrental}
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
-      - ./docker/postgres/init-postgis.sql:/docker-entrypoint-initdb.d/init-postgis.sql
+      - ./db/init-postgis.sql:/docker-entrypoint-initdb.d/init-postgis.sql
     ports:
       - "${DB_PORT:-5432}:5432"
     healthcheck:
@@ -60,7 +60,7 @@ services:
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     environment:
-      - VITE_API_URL=http://api:8000
+      - VITE_API_URL=http://api:8000   # Vite proxy uses this; browser never sees it
     depends_on:
       - api
     networks:
