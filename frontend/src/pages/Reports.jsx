@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import api from '../api/client'
 
 export default function Reports() {
   const [month, setMonth] = useState(new Date().getMonth() + 1)
@@ -6,13 +7,22 @@ export default function Reports() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
 
-  const download = (url, name) => {
-    const link = document.createElement('a')
-    link.href = url
-    link.download = name
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
+  const download = async (url, name) => {
+    try {
+      const response = await api.get(url, { responseType: 'blob' })
+      const blob = new Blob([response.data])
+      const blobUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = name
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(blobUrl)
+    } catch (err) {
+      alert('Download failed. Make sure you are logged in.')
+      console.error(err)
+    }
   }
 
   return (
@@ -31,7 +41,7 @@ export default function Reports() {
               <label className="block text-xs font-medium mb-1">Month</label>
               <input className="input" type="number" min={1} max={12} value={month} onChange={e => setMonth(e.target.value)} />
             </div>
-            <button onClick={() => download(`/api/v1/reports/monthly?year=${year}&month=${month}`, `report_${year}_${month}.xlsx`)} className="btn-primary">Download</button>
+            <button onClick={() => download(`/reports/monthly?year=${year}&month=${month}`, `report_${year}_${month}.xlsx`)} className="btn-primary">Download</button>
           </div>
         </div>
 
@@ -46,13 +56,13 @@ export default function Reports() {
               <label className="block text-xs font-medium mb-1">To</label>
               <input className="input" type="date" value={to} onChange={e => setTo(e.target.value)} />
             </div>
-            <button onClick={() => from && to && download(`/api/v1/reports/payments?from_date=${from}&to_date=${to}`, `ledger_${from}_to_${to}.xlsx`)} className="btn-primary">Download</button>
+            <button onClick={() => from && to && download(`/reports/payments?from_date=${from}&to_date=${to}`, `ledger_${from}_to_${to}.xlsx`)} className="btn-primary">Download</button>
           </div>
         </div>
 
         <div className="card md:col-span-2">
           <h2 className="font-semibold mb-3">Property GeoJSON Export</h2>
-          <button onClick={() => download('/api/v1/reports/properties/geojson', 'properties_export.geojson')} className="btn-secondary">Export GeoJSON</button>
+          <button onClick={() => download('/reports/properties/geojson', 'properties_export.geojson')} className="btn-secondary">Export GeoJSON</button>
         </div>
       </div>
     </div>

@@ -6,6 +6,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.database import get_db
 from app.core.security import verify_password, create_access_token, get_password_hash
 from app.models.stakeholders import PropertyManager
+from app.schemas.stakeholder import PropertyManagerResponse
+from app.api.deps import get_current_manager
 
 router = APIRouter()
 
@@ -45,3 +47,10 @@ def register(
     db.commit()
     db.refresh(manager)
     return {"manager_id": manager.manager_id, "phone": manager.phone}
+
+
+@router.get("/me", response_model=PropertyManagerResponse)
+def get_me(
+    current_manager: PropertyManager = Depends(get_current_manager),
+):
+    return current_manager

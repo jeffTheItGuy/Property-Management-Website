@@ -2,7 +2,9 @@ import uuid
 from datetime import datetime
 from typing import Optional, List, Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator, field_serializer
+
+from app.database import Base  # if needed elsewhere
 
 
 class PropertyDocumentBase(BaseModel):
@@ -32,7 +34,6 @@ class PropertyBase(BaseModel):
     description: Optional[str] = None
     amenities: Optional[str] = None
     status: str = "ACTIVE"
-    # GeoJSON-like input for lat/lon
     latitude: Optional[float] = None
     longitude: Optional[float] = None
 
@@ -62,9 +63,35 @@ class PropertyUpdate(BaseModel):
 
 class PropertyResponse(PropertyBase):
     property_id: uuid.UUID
-    geom: Optional[Any] = None  # WKB serialized
+    geom: Optional[Any] = None
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
+
+    @model_validator(mode='before')
+    @classmethod
+    def extract_lat_lon_from_geom(cls, data):
+        """Pull latitude/longitude out of the PostGIS geom column so the frontend map works."""
+        if hasattr(data, 'geom') and data.geom is not None:
+            try:
+                from geoalchemy2.shape import to_shape
+                shape = to_shape(data.geom)
+                data.latitude = shape.y
+                data.longitude = shape.x
+            except Exception:
+                pass
+        return data
+
+    @field_serializer('geom')
+    def serialize_geom(self, geom):
+        """Convert WKBElement to a GeoJSON-like dict so Pydantic doesn't choke."""
+        if geom is None:
+            return None
+        try:
+            from geoalchemy2.shape import to_shape
+            from shapely.geometry import mapping
+            return mapping(to_shape(geom))
+        except Exception:
+            return None
 
 
 class UnitBase(BaseModel):
